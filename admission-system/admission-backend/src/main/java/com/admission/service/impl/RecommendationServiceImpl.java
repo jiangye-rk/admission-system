@@ -86,7 +86,14 @@ public class RecommendationServiceImpl extends ServiceImpl<RecommendationRecordM
 
         results.sort((a, b) -> Double.compare(b.getMatchScore(), a.getMatchScore()));
 
-        saveRecommendationBatch(userId, user.getKsh(), results.subList(0, Math.min(50, results.size())));
+        // 异步保存推荐记录，不影响返回结果
+        try {
+            if (!results.isEmpty()) {
+                saveRecommendationBatch(userId, user.getKsh(), results.subList(0, Math.min(50, results.size())));
+            }
+        } catch (Exception e) {
+            log.warn("保存推荐记录失败，但不影响返回结果: {}", e.getMessage());
+        }
 
         return results;
     }
@@ -173,29 +180,32 @@ public class RecommendationServiceImpl extends ServiceImpl<RecommendationRecordM
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void saveRecommendationBatch(Long userId, String ksh, List<RecommendationResult> results) {
         if (results == null || results.isEmpty()) {
             return;
         }
 
-        List<RecommendationRecord> records = results.stream().map(result -> {
-            RecommendationRecord record = new RecommendationRecord();
-            record.setUserId(userId);
-            record.setKsh(ksh);
-            record.setYxdm(result.getYxdm());
-            record.setYxmc(result.getYxmc());
-            record.setZydm(result.getZydm());
-            record.setZymc(result.getZymc());
-            record.setNf(result.getNf());
-            record.setRecommendType(result.getRecommendType());
-            record.setMatchScore(result.getMatchScore());
-            record.setMatchReason(result.getMatchReason());
-            record.setCreateTime(new Date());
-            return record;
-        }).collect(Collectors.toList());
+        try {
+            List<RecommendationRecord> records = results.stream().map(result -> {
+                RecommendationRecord record = new RecommendationRecord();
+                record.setUserId(userId);
+                record.setKsh(ksh);
+                record.setYxdm(result.getYxdm());
+                record.setYxmc(result.getYxmc());
+                record.setZydm(result.getZydm());
+                record.setZymc(result.getZymc());
+                record.setNf(result.getNf());
+                record.setRecommendType(result.getRecommendType());
+                record.setMatchScore(result.getMatchScore());
+                record.setMatchReason(result.getMatchReason());
+                record.setCreateTime(new Date());
+                return record;
+            }).collect(Collectors.toList());
 
-        this.saveBatch(records);
+            this.saveBatch(records);
+        } catch (Exception e) {
+            log.warn("批量保存推荐记录失败: {}", e.getMessage());
+        }
     }
 
     @Override

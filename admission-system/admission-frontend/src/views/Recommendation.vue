@@ -287,14 +287,26 @@ const generateRecommendations = async () => {
   hasSearched.value = true
 
   try {
+    console.log('发送推荐请求:', {
+      score: searchForm.score,
+      rank: searchForm.rank,
+      year: searchForm.year,
+      pcmc: searchForm.pcmc || null
+    })
     const res = await apiGenerateRecommendations({
       score: searchForm.score,
       rank: searchForm.rank,
       year: searchForm.year,
       pcmc: searchForm.pcmc || null
     })
+    console.log('推荐响应:', res)
 
-    if (res.code === 200) {
+    // request.js 拦截器直接返回了 res.data，所以 res 就是数据数组
+    if (Array.isArray(res)) {
+      recommendations.value = res
+      total.value = recommendations.value.length
+      ElMessage.success(`成功生成 ${recommendations.value.length} 条推荐`)
+    } else if (res.code === 200) {
       recommendations.value = res.data || []
       total.value = recommendations.value.length
       ElMessage.success(`成功生成 ${recommendations.value.length} 条推荐`)
@@ -302,7 +314,8 @@ const generateRecommendations = async () => {
       ElMessage.error(res.msg || '生成推荐失败')
     }
   } catch (error) {
-    ElMessage.error('生成推荐失败：' + error.message)
+    console.error('推荐请求错误:', error)
+    ElMessage.error('生成推荐失败：' + (error.message || '未知错误'))
   } finally {
     loading.value = false
   }
@@ -361,9 +374,10 @@ const analyzeProbability = async (row) => {
       year: row.nf
     })
 
-    if (res.code === 200) {
+    // request.js 拦截器直接返回了 res.data
+    if (res && typeof res === 'object') {
       probabilityData.value = {
-        ...res.data,
+        ...res,
         yxmc: row.yxmc,
         zymc: row.zymc,
         minScore: row.zyzdf || row.zdf,
@@ -371,7 +385,7 @@ const analyzeProbability = async (row) => {
       }
       probabilityDialogVisible.value = true
     } else {
-      ElMessage.error(res.msg || '分析失败')
+      ElMessage.error('分析失败')
     }
   } catch (error) {
     ElMessage.error('分析失败：' + error.message)
