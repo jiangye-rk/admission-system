@@ -34,6 +34,8 @@ Thumbs.db
 *.xls
 *.csv
 !test_data/*.xlsx
+!admission-system/admission-backend/data/*.xlsx
+!admission-system/admission-backend/data/*.xls
 
 # Python
 __pycache__/
