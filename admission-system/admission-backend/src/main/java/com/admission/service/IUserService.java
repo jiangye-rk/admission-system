@@ -21,4 +21,7 @@ public interface IUserService extends IService<User> {
 
     // 根据分数查询位次
     Integer getRankByScore(Integer score);
+
+    // 根据用户名查询用户
+    User getByUsername(String username);
 }

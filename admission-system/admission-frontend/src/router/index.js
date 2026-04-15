@@ -49,6 +49,12 @@ const routes = [
         name: 'UserManage',
         component: () => import('@/views/UserManage.vue'),
         meta: { title: '用户管理', admin: true }
+      },
+      {
+        path: 'recommendation',
+        name: 'Recommendation',
+        component: () => import('@/views/Recommendation.vue'),
+        meta: { title: '智能推荐' }
       }
     ]
   }

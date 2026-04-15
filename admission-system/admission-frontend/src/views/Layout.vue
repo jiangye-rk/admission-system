@@ -14,6 +14,7 @@
       >
         <el-menu-item index="/dashboard"><el-icon><Odometer /></el-icon><span>数据概览</span></el-menu-item>
         <el-menu-item index="/query"><el-icon><Search /></el-icon><span>数据查询</span></el-menu-item>
+        <el-menu-item index="/recommendation"><el-icon><Star /></el-icon><span>智能推荐</span></el-menu-item>
         <el-menu-item index="/compare"><el-icon><TrendCharts /></el-icon><span>院校对比</span></el-menu-item>
         <el-menu-item index="/visualization"><el-icon><PieChart /></el-icon><span>可视化分析</span></el-menu-item>
         <el-menu-item index="/import" v-if="userStore.isAdmin"><el-icon><Upload /></el-icon><span>数据导入</span></el-menu-item>

@@ -37,3 +37,10 @@ export const excelApi = {
 export const scoreApi = {
   getRank: (score) => request.get('/score/rank', { params: { score } })
 }
+
+export const generateRecommendations = (data) => request.post('/recommendation/generate', data)
+export const getRecommendationsWithPage = (data) => request.post('/recommendation/page', data)
+export const getRecommendationHistory = (limit = 10) => request.get('/recommendation/history', { params: { limit } })
+export const getRecommendationStatistics = () => request.get('/recommendation/statistics')
+export const getSchoolRecommendations = (yxdm, year) => request.get(`/recommendation/school/${yxdm}`, { params: { year } })
+export const analyzeProbability = (params) => request.get('/recommendation/probability', { params })

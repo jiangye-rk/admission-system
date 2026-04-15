@@ -197,4 +197,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         segment = scoreSegmentMapper.selectOne(wrapper);
         return segment != null ? segment.getLjrs() : null;
     }
+
+    @Override
+    public User getByUsername(String username) {
+        return lambdaQuery().eq(User::getUsername, username).one();
+    }
 }
