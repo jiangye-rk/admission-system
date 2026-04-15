@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库服务
+  mysql:
+    image: mysql:8.0.42
+    container_name: admission-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: admission_db
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/admission_db_complete.sql:/docker-entrypoint-initdb.d/01-init.sql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - admission-network
+
+  # Redis 缓存服务
+  redis:
+    image: redis:7.2-alpine
+    container_name: admission-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - admission-network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./admission-backend
+      dockerfile: Dockerfile
+    container_name: admission-backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # 数据库配置
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/admission_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      # Redis 配置
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: 
+      SPRING_REDIS_DATABASE: 0
+      # JVM 配置
+      JAVA_OPTS: "-Xms512m -Xmx1024m -Djava.security.egd=file:/dev/./urandom"
+    ports:
+      - "8080:8080"
+    networks:
+      - admission-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./admission-frontend
+      dockerfile: Dockerfile
+    container_name: admission-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - admission-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+# 数据卷
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# 网络
+networks:
+  admission-network:
+    driver: bridge
