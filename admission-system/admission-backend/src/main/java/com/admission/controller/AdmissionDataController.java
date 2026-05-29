@@ -65,17 +65,14 @@ public class AdmissionDataController {
     @PostMapping("/export")
     public void export(@RequestBody List<Long> ids, HttpServletResponse response) throws IOException {
         String username = (String) request.getAttribute("username");
+        if (username == null) {
+            username = "unknown";
+        }
         List<AdmissionData> list = admissionDataService.listByIds(ids);
-        String fileName = username + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".xls";
-        response.setContentType("application/vnd.ms-excel");
+        String fileName = username + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".xlsx";
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
         EasyExcel.write(response.getOutputStream(), AdmissionData.class).sheet("数据").doWrite(list);
-        // 保存到服务器目录
-        String savePath = "D:/upload/export/";
-        File dir = new File(savePath);
-        if (!dir.exists()) dir.mkdirs();
-        File file = new File(savePath + fileName);
-        EasyExcel.write(file, AdmissionData.class).sheet("数据").doWrite(list);
     }
 
     @GetMapping("/schools")
@@ -86,6 +83,29 @@ public class AdmissionDataController {
     @GetMapping("/majors")
     public Result<List<String>> getMajors(@RequestParam String yxdm, @RequestParam Integer year) {
         return Result.success(admissionDataService.getMajorList(yxdm, year));
+    }
+
+    @GetMapping("/schools/page")
+    public Result<PageResult<Map<String, Object>>> getSchoolsPage(
+            @RequestParam Integer year,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "50") Integer pageSize,
+            @RequestParam(required = false) String keyword) {
+        Page<Map<String, Object>> page = new Page<>(pageNum, pageSize);
+        IPage<Map<String, Object>> result = admissionDataService.getSchoolListPage(page, year, keyword);
+        return Result.success(new PageResult<>(result.getTotal(), result.getRecords(), result.getCurrent(), result.getSize()));
+    }
+
+    @GetMapping("/majors/page")
+    public Result<PageResult<Map<String, Object>>> getMajorsPage(
+            @RequestParam Integer year,
+            @RequestParam(required = false) String yxdm,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "50") Integer pageSize,
+            @RequestParam(required = false) String keyword) {
+        Page<Map<String, Object>> page = new Page<>(pageNum, pageSize);
+        IPage<Map<String, Object>> result = admissionDataService.getMajorListPage(page, year, yxdm, keyword);
+        return Result.success(new PageResult<>(result.getTotal(), result.getRecords(), result.getCurrent(), result.getSize()));
     }
 
     @PostMapping("/compare")

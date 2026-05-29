@@ -2,6 +2,7 @@ package com.admission.mapper;
 
 import com.admission.entity.AdmissionData;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
@@ -36,4 +37,15 @@ public interface AdmissionDataMapper extends BaseMapper<AdmissionData> {
             "WHERE TRIM(yxdm) = TRIM(#{yxdm}) AND nf BETWEEN 2021 AND 2025 " +
             "ORDER BY nf, zdf")
     List<Map<String, Object>> selectAllYearDataByYxdm(@Param("yxdm") String yxdm);
+
+    // 分页查询院校列表（支持搜索）
+    IPage<Map<String, Object>> selectSchoolListPage(IPage<Map<String, Object>> page, 
+                                                     @Param("year") Integer year, 
+                                                     @Param("keyword") String keyword);
+
+    // 分页查询专业列表（支持搜索）
+    IPage<Map<String, Object>> selectMajorListPage(IPage<Map<String, Object>> page,
+                                                    @Param("year") Integer year,
+                                                    @Param("yxdm") String yxdm,
+                                                    @Param("keyword") String keyword);
 }

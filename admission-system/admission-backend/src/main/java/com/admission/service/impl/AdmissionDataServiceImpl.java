@@ -80,6 +80,16 @@ public class AdmissionDataServiceImpl extends ServiceImpl<AdmissionDataMapper, A
     }
 
     @Override
+    public IPage<Map<String, Object>> getSchoolListPage(Page<Map<String, Object>> page, Integer year, String keyword) {
+        return admissionDataMapper.selectSchoolListPage(page, year, keyword);
+    }
+
+    @Override
+    public IPage<Map<String, Object>> getMajorListPage(Page<Map<String, Object>> page, Integer year, String yxdm, String keyword) {
+        return admissionDataMapper.selectMajorListPage(page, year, yxdm, keyword);
+    }
+
+    @Override
     public Map<String, Object> compareSchools(List<String> yxdms, String zymc, Integer year) {
         Map<String, Object> result = new HashMap<>();
         List<Map<String, Object>> seriesData = new ArrayList<>();

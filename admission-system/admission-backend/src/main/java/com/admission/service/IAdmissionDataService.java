@@ -32,4 +32,10 @@ public interface IAdmissionDataService extends IService<AdmissionData> {
 
     // 检查选科是否符合要求
     boolean checkSubjectMatch(String requiredSubjects, String userSubjects);
+
+    // 分页获取院校列表（支持搜索）
+    IPage<Map<String, Object>> getSchoolListPage(Page<Map<String, Object>> page, Integer year, String keyword);
+
+    // 分页获取专业列表（支持搜索）
+    IPage<Map<String, Object>> getMajorListPage(Page<Map<String, Object>> page, Integer year, String yxdm, String keyword);
 }

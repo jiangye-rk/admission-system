@@ -15,6 +15,8 @@ export const dataApi = {
   queryWithUser: (params) => request.get('/data/queryWithUser', { params }),
   getSchools: (year) => request.get('/data/schools', { params: { year } }),
   getMajors: (yxdm, year) => request.get('/data/majors', { params: { yxdm, year } }),
+  getSchoolsPage: (year, pageNum = 1, pageSize = 50, keyword = '') => request.get('/data/schools/page', { params: { year, pageNum, pageSize, keyword } }),
+  getMajorsPage: (year, yxdm, pageNum = 1, pageSize = 50, keyword = '') => request.get('/data/majors/page', { params: { year, yxdm, pageNum, pageSize, keyword } }),
   compare: (data) => request.post('/data/compare', data),
   getHotMajors: (year, limit = 10) => request.get('/data/hot', { params: { year, limit } }),
   getDistribution: (year) => request.get('/data/distribution', { params: { year } }),

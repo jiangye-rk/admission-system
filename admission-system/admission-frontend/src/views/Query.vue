@@ -4,7 +4,7 @@
       <template #header><span>录取数据查询</span></template>
       <el-form :inline="true" :model="queryForm" class="query-form">
         <el-form-item label="年份">
-          <el-select v-model="queryForm.year" placeholder="请选择" style="width: 120px; height: 32px;" class="query-select">
+          <el-select v-model="queryForm.year" placeholder="请选择" style="width: 120px; height: 32px;" class="query-select" @change="handleYearChange">
             <el-option label="2024" value="2024" />
             <el-option label="2023" value="2023" />
             <el-option label="2022" value="2022" />
@@ -13,10 +13,35 @@
           </el-select>
         </el-form-item>
         <el-form-item label="院校名称">
-          <el-input v-model="queryForm.yxmc" placeholder="请输入院校名称" clearable />
+          <el-select-v2
+            v-model="queryForm.yxdm"
+            :options="schoolOptions"
+            placeholder="请选择或搜索院校"
+            clearable
+            filterable
+            remote
+            :remote-method="searchSchools"
+            :loading="schoolLoading"
+            style="width: 220px"
+            @focus="loadSchools"
+            @clear="handleSchoolClear"
+          />
         </el-form-item>
         <el-form-item label="专业名称">
-          <el-input v-model="queryForm.zymc" placeholder="请输入专业名称" clearable />
+          <el-select-v2
+            v-model="queryForm.zydm"
+            :options="majorOptions"
+            placeholder="请选择或搜索专业"
+            clearable
+            filterable
+            remote
+            :remote-method="searchMajors"
+            :loading="majorLoading"
+            style="width: 220px"
+            :disabled="!queryForm.yxdm"
+            @focus="loadMajors"
+            @clear="handleMajorClear"
+          />
         </el-form-item>
         <el-form-item label="批次">
           <el-select v-model="queryForm.pcmc" placeholder="请选择" clearable style="width: 180px; height: 32px;" class="query-select">
@@ -94,7 +119,9 @@ const selectedRows = ref([])
 
 const queryForm = reactive({
   year: '2024',
+  yxdm: '',
   yxmc: '',
+  zydm: '',
   zymc: '',
   pcmc: '',
   minScore: null,
@@ -103,6 +130,109 @@ const queryForm = reactive({
   maxRank: null
 })
 
+// 院校选择相关
+const schoolOptions = ref([])
+const schoolLoading = ref(false)
+const schoolPageNum = ref(1)
+const schoolPageSize = ref(50)
+const schoolTotal = ref(0)
+const schoolKeyword = ref('')
+
+// 专业选择相关
+const majorOptions = ref([])
+const majorLoading = ref(false)
+const majorPageNum = ref(1)
+const majorPageSize = ref(50)
+const majorTotal = ref(0)
+const majorKeyword = ref('')
+
+// 加载院校列表
+const loadSchools = async (keyword = '') => {
+  if (schoolLoading.value) return
+  schoolLoading.value = true
+  schoolKeyword.value = keyword
+  schoolPageNum.value = 1
+  try {
+    const res = await dataApi.getSchoolsPage(
+      parseInt(queryForm.year),
+      schoolPageNum.value,
+      schoolPageSize.value,
+      keyword
+    )
+    schoolOptions.value = res.list.map(item => ({
+      value: item.yxdm,
+      label: item.yxmc
+    }))
+    schoolTotal.value = res.total
+  } catch (error) {
+    console.error('加载院校失败:', error)
+  } finally {
+    schoolLoading.value = false
+  }
+}
+
+// 搜索院校
+const searchSchools = (keyword) => {
+  loadSchools(keyword)
+}
+
+// 清空院校选择
+const handleSchoolClear = () => {
+  queryForm.yxdm = ''
+  queryForm.yxmc = ''
+  queryForm.zydm = ''
+  queryForm.zymc = ''
+  majorOptions.value = []
+}
+
+// 加载专业列表
+const loadMajors = async (keyword = '') => {
+  if (!queryForm.yxdm) return
+  if (majorLoading.value) return
+  majorLoading.value = true
+  majorKeyword.value = keyword
+  majorPageNum.value = 1
+  try {
+    const res = await dataApi.getMajorsPage(
+      parseInt(queryForm.year),
+      queryForm.yxdm,
+      majorPageNum.value,
+      majorPageSize.value,
+      keyword
+    )
+    majorOptions.value = res.list.map(item => ({
+      value: item.zydm,
+      label: item.zymc
+    }))
+    majorTotal.value = res.total
+  } catch (error) {
+    console.error('加载专业失败:', error)
+  } finally {
+    majorLoading.value = false
+  }
+}
+
+// 搜索专业
+const searchMajors = (keyword) => {
+  loadMajors(keyword)
+}
+
+// 清空专业选择
+const handleMajorClear = () => {
+  queryForm.zydm = ''
+  queryForm.zymc = ''
+}
+
+// 监听年份变化，重置院校和专业选择
+const handleYearChange = () => {
+  queryForm.yxdm = ''
+  queryForm.yxmc = ''
+  queryForm.zydm = ''
+  queryForm.zymc = ''
+  schoolOptions.value = []
+  majorOptions.value = []
+}
+
 const handleSelectionChange = (val) => {
   selectedRows.value = val
 }
@@ -110,12 +240,16 @@ const handleSelectionChange = (val) => {
 const loadData = async () => {
   loading.value = true
   try {
+    // 根据选择的院校代码获取院校名称
+    const selectedSchool = schoolOptions.value.find(s => s.value === queryForm.yxdm)
+    const selectedMajor = majorOptions.value.find(m => m.value === queryForm.zydm)
+    
     const params = {
       pageNum: pageNum.value,
       pageSize: pageSize.value,
       year: queryForm.year ? parseInt(queryForm.year) : null,
-      yxmc: queryForm.yxmc || null,
-      zymc: queryForm.zymc || null,
+      yxmc: selectedSchool ? selectedSchool.label : (queryForm.yxmc || null),
+      zymc: selectedMajor ? selectedMajor.label : (queryForm.zymc || null),
       pcmc: queryForm.pcmc || null,
       minScore: queryForm.minScore,
       maxScore: queryForm.maxScore,
@@ -140,13 +274,17 @@ const handleQuery = () => {
 
 const handleReset = () => {
   queryForm.year = '2024'
+  queryForm.yxdm = ''
   queryForm.yxmc = ''
+  queryForm.zydm = ''
   queryForm.zymc = ''
   queryForm.pcmc = ''
   queryForm.minScore = null
   queryForm.maxScore = null
   queryForm.minRank = null
   queryForm.maxRank = null
+  schoolOptions.value = []
+  majorOptions.value = []
   handleQuery()
 }
 
@@ -157,7 +295,8 @@ const handleExportSelected = async () => {
     return
   }
   try {
-    const blob = await dataApi.export(ids)
+    const response = await dataApi.export(ids)
+    const blob = response.data
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -167,7 +306,8 @@ const handleExportSelected = async () => {
     window.URL.revokeObjectURL(url)
     ElMessage.success('导出成功')
   } catch (error) {
-    ElMessage.error('导出失败')
+    console.error('导出错误:', error)
+    ElMessage.error('导出失败: ' + (error.message || '未知错误'))
   }
 }
 

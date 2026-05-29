@@ -1,5 +1,6 @@
 package com.admission.entity;
 
+import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,51 +14,80 @@ public class AdmissionData implements Serializable {
     private static final long serialVersionUID = 1L;
     
     @TableId(type = IdType.AUTO)
+    @ExcelProperty("ID")
     private Long id;
     
     // 年份和批次
+    @ExcelProperty("年份")
     private Integer nf;
-    private String pcmc;      // 批次名称
+    @ExcelProperty("批次名称")
+    private String pcmc;
     
     // 院校信息
-    private String yxdm;      // 院校代码
-    private String yxmc;      // 院校名称
+    @ExcelProperty("院校代码")
+    private String yxdm;
+    @ExcelProperty("院校名称")
+    private String yxmc;
     
     // 选考科目和专业
-    private String kskmyq;    // 考试科目要求
-    private String zydm;      // 专业代码
-    private String zymc;      // 专业名称
+    @ExcelProperty("选考科目")
+    private String kskmyq;
+    @ExcelProperty("专业代码")
+    private String zydm;
+    @ExcelProperty("专业名称")
+    private String zymc;
     
     // 组分数数据
-    private Integer zgf;      // 最高分
-    private Integer zdf;      // 最低分
-    private BigDecimal pjf;   // 平均分
-    private Integer zdfwc;    // 最低分位次
+    @ExcelProperty("组最高分")
+    private Integer zgf;
+    @ExcelProperty("组最低分")
+    private Integer zdf;
+    @ExcelProperty("组平均分")
+    private BigDecimal pjf;
+    @ExcelProperty("最低分位次")
+    private Integer zdfwc;
     
     // 专业计划与录取
-    private Integer zjhs;     // 专业计划
-    private Integer lqs;       // 专业录取
+    @ExcelProperty("专业计划")
+    private Integer zjhs;
+    @ExcelProperty("专业录取")
+    private Integer lqs;
     
     // 专业分数数据
-    private Integer zyzdf;    // 专业最低分
-    private Integer zyzdfwc;  // 专业最低分位次
-    private Integer zyzdwc;   // 专业最低位次
-    private BigDecimal zypjf; // 专业平均分
-    private Integer zypjwc;   // 专业平均位次
-    private Integer zyzwf;    // 专业中位分
-    private Integer zyzwwc;   // 专业中位位次
+    @ExcelProperty("专业最低分")
+    private Integer zyzdf;
+    @ExcelProperty("专业最低分位次")
+    private Integer zyzdfwc;
+    @ExcelProperty("专业最低位次")
+    private Integer zyzdwc;
+    @ExcelProperty("专业平均分")
+    private BigDecimal zypjf;
+    @ExcelProperty("专业平均位次")
+    private Integer zypjwc;
+    @ExcelProperty("专业中位分")
+    private Integer zyzwf;
+    @ExcelProperty("专业中位位次")
+    private Integer zyzwwc;
     
     // 组位次数据
-    private Integer zzdwc;    // 组最低位次
-    private Integer zpjwc;    // 组平均位次
-    private Integer zzwf;     // 组中位分
-    private Integer zzwwc;    // 组中位位次
+    @ExcelProperty("组最低位次")
+    private Integer zzdwc;
+    @ExcelProperty("组平均位次")
+    private Integer zpjwc;
+    @ExcelProperty("组中位分")
+    private Integer zzwf;
+    @ExcelProperty("组中位位次")
+    private Integer zzwwc;
     
     // 其他字段
+    @ExcelProperty("是否985")
     private Integer sf985;
+    @ExcelProperty("是否211")
     private Integer sf211;
-    private String sfbz;      // 收费标准
-    private String ssmc;      // 省市名称
+    @ExcelProperty("收费标准")
+    private String sfbz;
+    @ExcelProperty("省市名称")
+    private String ssmc;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
